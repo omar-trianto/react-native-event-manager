@@ -4,57 +4,27 @@ import { ScrollView, View, StyleSheet } from 'react-native';
 import { ActivityIndicator, Button, Card, Chip, Text, Searchbar, TextInput } from 'react-native-paper';
 import { useTheme } from '../ThemeContext';
 
+const STORAGE_KEY = 'cached_events';
+
 export default function EventsScreen({ navigation }) {
     const { colors } = useTheme();
 
-// calls for remote data here
 const [events, setEvents] = React.useState([]);
 const [loading, setLoading] = React.useState(false); //Add cool spin animation part2
 const [error, setError] = React.useState('');
 
-const EVENTS_URL = 'https://tafeshaun.github.io/elevate-data/events.json';
-const EVENT_KEY = 'cached_events';
-
-const loadEvents = async () => {
-    try{
-        setLoading(true);
-        setError('');
-        const response = await fetch(EVENTS_URL);
-        if(!response.ok){
-            throw new Error('Network response failed.')
-        }
-        const text = await response.text();
-        const cleaned = text.replace(/^\uFEFF/, ''); //Clean
-        const data = JSON.parse(cleaned);
-        setEvents(data);
-    }
-    catch (e){
-        setError('Could not load any events.');
-        console.error(e);
-    }
-    finally {
-        setLoading(false);
-    }
- 
+// Load 
+const loadLocalEvents = async () => {
+try {
+    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    if (raw) setEvents(JSON.parse(raw));
+} catch (e) {
+    console.error('Load failed:', e);
 }
-
-// aysnc call if load fails > use cache first
-const loadCached = async () => {
-    try{
-        const rawEvent = await AsyncStorage.getItem(EVENT_KEY);
-        if(rawEvent)
-        {
-            setEvents(JSON.parse(rawEvent))
-        }
-    }
-    catch (e){
-        console.warn('Failed to load cached event data', e);
-    }
 };
 
 React.useEffect(() => {
-    loadCached(); //CACHED DATA
-    loadEvents(); // REMOTE DATA
+loadLocalEvents();
 }, []);
 
     const [searchQuery, setSearchQuery] = React.useState("");

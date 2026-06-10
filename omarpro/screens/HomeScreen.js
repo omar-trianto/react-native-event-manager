@@ -27,6 +27,7 @@ const loadEvents = async () => {
         const cleaned = text.replace(/^\uFEFF/, ''); //Clean
         const data = JSON.parse(cleaned);
         setEvents(data);
+        await AsyncStorage.setItem(EVENT_KEY, JSON.stringify(data));
     }
     catch (e){
         setError('Could not load any events.');
